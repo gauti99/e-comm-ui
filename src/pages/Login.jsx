@@ -35,7 +35,8 @@ function Login() {
 
         {/* Brand */}
         <h1 className="text-4xl font-extrabold text-center tracking-widest mb-2">
-          <span className="text-red-600">RED</span>LINE
+          <span className="text-red-600">RED</span>
+            <span className="text-white">LINE</span>
         </h1>
 
         <p className="text-center text-gray-400 text-sm mb-8">

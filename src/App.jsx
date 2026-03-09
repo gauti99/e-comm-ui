@@ -4,10 +4,9 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AdminLayout from "./pages/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProducts from "./components/admin/AdminProducts";
 import AdminAddProduct from "./components/admin/AdminAddProduct";
-// import AdminEditProduct from "./admin/pages/AdminEditProduct";
-import AdminDashboard from "./pages/admin/AdminDashboard";
 
 function App() {
   const location = useLocation();
@@ -29,10 +28,9 @@ function App() {
         
         {/* Admin routes */}
         <Route path="/admin" element={<AdminLayout />}>
-          <Route  path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/products" element={<AdminProducts />} />
+          <Route index element={<AdminDashboard />} />
+          <Route path="products" element={<AdminProducts />} />
           <Route path="products/add" element={<AdminAddProduct />} />
-          {/* <Route path="products/edit/:id" element={<AdminEditProduct />} /> */}
         </Route>
       </Routes>
     </>

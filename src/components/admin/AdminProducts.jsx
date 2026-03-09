@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiFilter } from 'react-icons/fi';
-import axios from 'axios';
-
-// Mock API service - replace with your actual API
-const API_URL = 'https://api.example.com/products';
 
 const AdminProducts = () => {
   const [products, setProducts] = useState([]);
@@ -14,10 +10,8 @@ const AdminProducts = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [productToDelete, setProductToDelete] = useState(null);
 
-  // Mock categories
-  const categories = ['all', 'Electronics', 'Clothing', 'Books', 'Home & Garden'];
+  const categories = ['all', 'Electronics', 'Clothing', 'Books', 'Home & Garden', 'Sports', 'Toys'];
 
-  // Fetch products
   useEffect(() => {
     fetchProducts();
   }, []);
@@ -25,11 +19,7 @@ const AdminProducts = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      // Replace with actual API call
-      // const response = await axios.get(API_URL);
-      // setProducts(response.data);
-      
-      // Mock data for demonstration
+      // Mock data
       setTimeout(() => {
         setProducts(mockProducts);
         setLoading(false);
@@ -40,7 +30,6 @@ const AdminProducts = () => {
     }
   };
 
-  // Mock products data
   const mockProducts = [
     { id: 1, name: 'Wireless Headphones', category: 'Electronics', price: 99.99, stock: 45, image: 'https://via.placeholder.com/50' },
     { id: 2, name: 'Cotton T-Shirt', category: 'Clothing', price: 24.99, stock: 100, image: 'https://via.placeholder.com/50' },
@@ -49,7 +38,6 @@ const AdminProducts = () => {
     { id: 5, name: 'Smart Watch', category: 'Electronics', price: 199.99, stock: 20, image: 'https://via.placeholder.com/50' },
   ];
 
-  // Handle delete
   const handleDeleteClick = (product) => {
     setProductToDelete(product);
     setShowDeleteModal(true);
@@ -57,10 +45,6 @@ const AdminProducts = () => {
 
   const confirmDelete = async () => {
     try {
-      // Replace with actual API call
-      // await axios.delete(`${API_URL}/${productToDelete.id}`);
-      
-      // Mock delete
       setProducts(products.filter(p => p.id !== productToDelete.id));
       setShowDeleteModal(false);
       setProductToDelete(null);
@@ -69,7 +53,6 @@ const AdminProducts = () => {
     }
   };
 
-  // Filter products
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
@@ -86,7 +69,7 @@ const AdminProducts = () => {
         </div>
         <Link
           to="/admin/products/add"
-          className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors whitespace-nowrap"
         >
           <FiPlus className="w-5 h-5" />
           <span>Add New Product</span>
@@ -140,7 +123,7 @@ const AdminProducts = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -177,7 +160,7 @@ const AdminProducts = () => {
                         {product.stock > 20 ? 'In Stock' : product.stock > 10 ? 'Low Stock' : 'Critical'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <button
                         onClick={() => {/* Navigate to edit */}}
                         className="text-indigo-600 hover:text-indigo-900 mr-4"
