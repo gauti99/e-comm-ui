@@ -7,6 +7,9 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProducts from "./components/admin/AdminProducts";
 import AdminAddProduct from "./components/admin/AdminAddProduct";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminAnalytics from "./pages/admin/AdminAnalytics";
+import AdminSetting from "./pages/admin/AdminSetting";
 
 function App() {
   const location = useLocation();
@@ -28,9 +31,12 @@ function App() {
         
         {/* Admin routes */}
         <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<AdminDashboard />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/users" element={<AdminUsers />} />
           <Route path="products" element={<AdminProducts />} />
           <Route path="products/add" element={<AdminAddProduct />} />
+          <Route path="analytics" element={<AdminAnalytics />} />
+          <Route path="settings" element={<AdminSetting />} />
         </Route>
       </Routes>
     </>
