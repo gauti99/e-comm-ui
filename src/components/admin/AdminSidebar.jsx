@@ -17,7 +17,7 @@ const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const menuItems = [
     { path: '/admin', icon: FiHome, label: 'Dashboard', end: true },
     { path: '/admin/products', icon: FiShoppingBag, label: 'Products' },
-    { path: '/admin/orders', icon: FiPackage, label: 'Orders' },
+    // { path: '/admin/orders', icon: FiPackage, label: 'Orders' },
     { path: '/admin/users', icon: FiUsers, label: 'Users' },
     { path: '/admin/analytics', icon: FiBarChart2, label: 'Analytics' },
     { path: '/admin/settings', icon: FiSettings, label: 'Settings' },

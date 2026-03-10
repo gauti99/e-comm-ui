@@ -1,16 +1,34 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
 import API from "../services/api";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+
+  const [errors, setErrors] = useState({});
+
   const navigate = useNavigate();
 
   const submitHandler = async (e) => {
     e.preventDefault();
+
+    let newErrors = {};
+
+    // Email validation
+    if (!email) {
+      newErrors.email = "Email is required";
+    }
+
+    // Password validation
+    if (!password) {
+      newErrors.password = "Password is required";
+    }
+
+    setErrors(newErrors);
+
+    // Stop API call if errors exist
+    if (Object.keys(newErrors).length > 0) return;
 
     try {
       const { data } = await API.post("/users/login", {
@@ -25,6 +43,7 @@ function Login() {
       } else {
         navigate("/");
       }
+
     } catch (error) {
       alert("Invalid Credentials");
     }
@@ -35,7 +54,7 @@ function Login() {
 
       <div className="bg-zinc-900 p-10 rounded-xl w-full max-w-md border border-zinc-800 shadow-2xl">
 
-        {/* Brand */}
+        {/* Logo */}
         <h1 className="text-4xl font-extrabold text-center tracking-widest mb-2">
           <span className="text-red-600">RED</span>
           <span className="text-white">LINE</span>
@@ -48,30 +67,39 @@ function Login() {
         <form onSubmit={submitHandler} className="space-y-5">
 
           {/* Email */}
-          <input
-            type="email"
-            placeholder="Email Address"
-            className="w-full p-3 rounded-lg bg-zinc-800 text-white outline-none border border-transparent focus:border-red-600 transition"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-
-          {/* Password with Eye Button */}
-          <div className="relative">
+          <div>
             <input
-              type={showPassword ? "text" : "password"}
+              type="email"
+              placeholder="Email Address"
+              className={`w-full p-3 rounded-lg bg-zinc-800 text-white outline-none border transition 
+              ${errors.email ? "border-red-500" : "border-transparent focus:border-red-600"}`}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.email}
+              </p>
+            )}
+          </div>
+
+          {/* Password */}
+          <div>
+            <input
+              type="password"
               placeholder="Password"
-              className="w-full p-3 rounded-lg bg-zinc-800 text-white outline-none border border-transparent focus:border-red-600 transition"
+              className={`w-full p-3 rounded-lg bg-zinc-800 text-white outline-none border transition 
+              ${errors.password ? "border-red-500" : "border-transparent focus:border-red-600"}`}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
 
-            <span
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-red-500 cursor-pointer"
-            >
-              {showPassword ? <FaEyeSlash /> : <FaEye />}
-            </span>
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.password}
+              </p>
+            )}
           </div>
 
           {/* Button */}
@@ -81,7 +109,6 @@ function Login() {
 
         </form>
 
-        {/* Register link */}
         <p className="text-center text-gray-400 text-sm mt-6">
           Don't have an account?{" "}
           <Link to="/register" className="text-red-500 hover:underline">
@@ -90,7 +117,6 @@ function Login() {
         </p>
 
       </div>
-
     </div>
   );
 }
