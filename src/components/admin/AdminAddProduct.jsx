@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "../../config/axiosconfig";
+
 const AdminAddProduct = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
+    brand: "", // New brand field
+    size: "", // New size field
     price: "",
     category: "Electronics",
     countInStock: "",
@@ -21,6 +24,17 @@ const AdminAddProduct = () => {
     "Sports",
     "Toys",
   ];
+
+  // Size options based on category (you can modify this as needed)
+  const sizeOptions = {
+    Clothing: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"],
+    Shoes: ["6", "7", "8", "9", "10", "11", "12"],
+    Electronics: ["N/A"],
+    Books: ["N/A"],
+    "Home & Garden": ["N/A"],
+    Sports: ["N/A"],
+    Toys: ["N/A"],
+  };
 
   useEffect(() => {
     // Check if user is authenticated
@@ -43,7 +57,7 @@ const AdminAddProduct = () => {
     setLoading(true);
 
     // Validate form data
-    if (!formData.name || !formData.price || !formData.countInStock || !formData.description) {
+    if (!formData.name || !formData.brand || !formData.price || !formData.countInStock || !formData.description) {
       alert("Please fill in all required fields");
       setLoading(false);
       return;
@@ -97,6 +111,22 @@ const AdminAddProduct = () => {
           />
         </div>
 
+        {/* New Brand Field */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Brand <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            name="brand"
+            value={formData.brand}
+            onChange={handleChange}
+            required
+            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+            placeholder="Enter brand name (e.g., Nike, Apple, Samsung)"
+          />
+        </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Price ($) <span className="text-red-500">*</span>
@@ -131,6 +161,54 @@ const AdminAddProduct = () => {
               </option>
             ))}
           </select>
+        </div>
+
+        {/* New Size Field - Conditional rendering based on category */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Size <span className="text-red-500">*</span>
+          </label>
+          {(formData.category === "Clothing" || formData.category === "Sports") ? (
+            <select
+              name="size"
+              value={formData.size}
+              onChange={handleChange}
+              required
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+            >
+              <option value="">Select size</option>
+              {sizeOptions.Clothing.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+          ) : formData.category === "Shoes" ? (
+            <select
+              name="size"
+              value={formData.size}
+              onChange={handleChange}
+              required
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+            >
+              <option value="">Select size</option>
+              {sizeOptions.Shoes.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input
+              type="text"
+              name="size"
+              value={formData.size}
+              onChange={handleChange}
+              required
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              placeholder="Enter size (e.g., Medium, 15-inch, One Size)"
+            />
+          )}
         </div>
 
         <div>

@@ -1,14 +1,19 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import API from "../services/api";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
+  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
 
   const navigate = useNavigate();
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
   const submitHandler = async (e) => {
     e.preventDefault();
@@ -84,17 +89,28 @@ function Login() {
             )}
           </div>
 
-          {/* Password */}
+          {/* Password with Show/Hide Toggle */}
           <div>
-            <input
-              type="password"
-              placeholder="Password"
-              className={`w-full p-3 rounded-lg bg-zinc-800 text-white outline-none border transition 
-              ${errors.password ? "border-red-500" : "border-transparent focus:border-red-600"}`}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                className={`w-full p-3 pr-12 rounded-lg bg-zinc-800 text-white outline-none border transition 
+                ${errors.password ? "border-red-500" : "border-transparent focus:border-red-600"}`}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              
+              {/* Eye icon for show/hide password */}
+              <button
+                type="button"
+                onClick={togglePasswordVisibility}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition"
+              >
+                {showPassword ? <FaEyeSlash size={15} /> : <FaEye size={15} />}
+              </button>
+            </div>
+  
             {errors.password && (
               <p className="text-red-500 text-sm mt-1">
                 {errors.password}
