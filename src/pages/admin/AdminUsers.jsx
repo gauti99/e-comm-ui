@@ -11,7 +11,12 @@ const AdminUsers = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
+
+  // modal/form state
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -20,7 +25,7 @@ const AdminUsers = () => {
     role: "user" // Default role
   });
   const [formErrors, setFormErrors] = useState({});
-  const [addLoading, setAddLoading] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
 
   // Role options
   const roleOptions = [
@@ -67,6 +72,20 @@ const AdminUsers = () => {
     setShowDeleteModal(true);
   };
 
+  const handleEditClick = (user) => {
+    setEditingUser(user);
+    setFormData({
+      name: user.name || "",
+      email: user.email || "",
+      password: "",
+      confirmPassword: "",
+      role: user.role || "user"
+    });
+    setFormErrors({});
+    setIsEditMode(true);
+    setShowUserModal(true);
+  };
+
   const confirmDelete = async () => {
     try {
       setDeleteLoading(true);
@@ -108,31 +127,34 @@ const AdminUsers = () => {
 
   const validateForm = () => {
     const errors = {};
-    
+
     if (!formData.name.trim()) {
       errors.name = "Name is required";
     }
-    
+
     if (!formData.email.trim()) {
       errors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       errors.email = "Email is invalid";
     }
-    
-    if (!formData.password) {
-      errors.password = "Password is required";
-    } else if (formData.password.length < 6) {
-      errors.password = "Password must be at least 6 characters";
-    }
-    
-    if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = "Passwords do not match";
+
+    // password is required when adding or when user enters a new password during edit
+    if (!isEditMode || formData.password) {
+      if (!formData.password) {
+        errors.password = "Password is required";
+      } else if (formData.password.length < 6) {
+        errors.password = "Password must be at least 6 characters";
+      }
+
+      if (formData.password !== formData.confirmPassword) {
+        errors.confirmPassword = "Passwords do not match";
+      }
     }
 
     if (!formData.role) {
       errors.role = "Role is required";
     }
-    
+
     return errors;
   };
 
@@ -146,19 +168,19 @@ const AdminUsers = () => {
     }
     
     try {
-      setAddLoading(true);
+      setFormLoading(true);
       const { confirmPassword, ...userData } = formData; // Remove confirmPassword before sending
       const res = await axios.post("/users/register", userData);
       
       setUsers(prev => [...prev, res.data.data || res.data]);
-      setShowAddModal(false);
+      setShowUserModal(false);
       resetForm();
       alert("User added successfully!");
     } catch (error) {
       console.error("Add user error:", error);
       alert(error.response?.data?.message || "Failed to add user. Please try again.");
     } finally {
-      setAddLoading(false);
+      setFormLoading(false);
     }
   };
 
@@ -171,6 +193,41 @@ const AdminUsers = () => {
       role: "user"
     });
     setFormErrors({});
+  };
+
+  const handleUpdateUser = async (e) => {
+    e.preventDefault();
+    const errors = validateForm();
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+    try {
+      setFormLoading(true);
+      const { confirmPassword, ...userData } = formData;
+      // remove empty password so backend won't try to hash an empty string
+      if (!userData.password) {
+        delete userData.password;
+      }
+      // log payload for debugging
+      console.log('update payload:', editingUser?._id, userData);
+
+      const res = await axios.put(`/users/${editingUser._id}`, userData);
+      setUsers(prev =>
+        prev.map(u => (u._id === editingUser._id ? res.data.data || res.data : u))
+      );
+      setShowUserModal(false);
+      resetForm();
+      setEditingUser(null);
+      setIsEditMode(false);
+      alert("User updated successfully!");
+    } catch (error) {
+      console.error("Update user error:", error, error.response?.data);
+      // show backend message if available
+      alert(error.response?.data?.message || "Failed to update user. Please try again.");
+    } finally {
+      setFormLoading(false);
+    }
   };
 
   const filteredUsers = (users || []).filter((user) => {
@@ -204,7 +261,8 @@ const AdminUsers = () => {
         <button
           onClick={() => {
             resetForm();
-            setShowAddModal(true);
+            setIsEditMode(false);
+            setShowUserModal(true);
           }}
           className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
         >
@@ -253,7 +311,11 @@ const AdminUsers = () => {
                     <td colSpan="4" className="text-center py-10 text-gray-500">
                       No users found. 
                       <button
-                        onClick={() => setShowAddModal(true)}
+                        onClick={() => {
+                          resetForm();
+                          setIsEditMode(false);
+                          setShowUserModal(true);
+                        }}
                         className="text-red-600 hover:text-red-700 ml-1 font-medium"
                       >
                         Add your first user
@@ -286,13 +348,13 @@ const AdminUsers = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex gap-4">
-                          <Link
-                            to={`/admin/users/edit/${user._id}`}
+                          <button
+                            onClick={() => handleEditClick(user)}
                             className="text-indigo-600 hover:text-indigo-900 transition-colors"
                             title="Edit user"
                           >
                             <FiEdit2 size={18} />
-                          </Link>
+                          </button>
                           <button
                             onClick={() => handleDeleteClick(user)}
                             className="text-red-600 hover:text-red-900 transition-colors"
@@ -311,13 +373,15 @@ const AdminUsers = () => {
         )}
       </div>
 
-      {/* ADD USER MODAL */}
-      {showAddModal && (
+      {/* USER FORM MODAL (add or edit) */}
+      {showUserModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded-lg w-96 max-w-md">
-            <h3 className="text-lg font-semibold mb-4 text-gray-900">Add New User</h3>
-            
-            <form onSubmit={handleAddUser}>
+            <h3 className="text-lg font-semibold mb-4 text-gray-900">
+              {isEditMode ? 'Edit User' : 'Add New User'}
+            </h3>
+
+            <form onSubmit={isEditMode ? handleUpdateUser : handleAddUser}>
               <div className="space-y-4">
                 {/* Name Field */}
                 <div>
@@ -386,7 +450,10 @@ const AdminUsers = () => {
                 {/* Password Field */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Password <span className="text-red-500">*</span>
+                    Password {(!isEditMode || formData.password) && <span className="text-red-500">*</span>}
+                    {isEditMode && (
+                      <span className="text-xs text-gray-500 ml-2">(leave blank to keep current)</span>
+                    )}
                   </label>
                   <input
                     type="password"
@@ -406,7 +473,7 @@ const AdminUsers = () => {
                 {/* Confirm Password Field */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Confirm Password <span className="text-red-500">*</span>
+                    Confirm Password {(!isEditMode || formData.password) && <span className="text-red-500">*</span>}
                   </label>
                   <input
                     type="password"
@@ -429,26 +496,28 @@ const AdminUsers = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    setShowAddModal(false);
+                    setShowUserModal(false);
                     resetForm();
+                    setIsEditMode(false);
+                    setEditingUser(null);
                   }}
                   className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                  disabled={addLoading}
+                  disabled={formLoading}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={addLoading}
+                  disabled={formLoading}
                   className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                 >
-                  {addLoading ? (
+                  {formLoading ? (
                     <>
                       <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
-                      Adding...
+                      {isEditMode ? 'Saving...' : 'Adding...'}
                     </>
                   ) : (
-                    'Register User'
+                    isEditMode ? 'Save Changes' : 'Register User'
                   )}
                 </button>
               </div>

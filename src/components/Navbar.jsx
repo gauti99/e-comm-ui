@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { FaUserCircle } from "react-icons/fa";
 import { FiLogOut } from "react-icons/fi";
 import { useState } from "react";
+import { FiShoppingCart } from "react-icons/fi";
 
 function Navbar() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -37,26 +38,34 @@ function Navbar() {
             </h1>
           </Link>
 
-          {/* Right Icons */}
-          <div className="flex items-center gap-6 text-2xl text-gray-300">
+        {/* Right Icons */}
+<div className="flex items-center gap-6 text-2xl text-gray-300">
 
-            {/* Profile */}
-            <Link to="/profile" className="hover:text-red-500 transition">
-              <FaUserCircle />
-            </Link>
+  {/* 🛒 Cart */}
+  <Link to="/cart" className="relative hover:text-red-500 transition">
+    <FiShoppingCart />
 
-            {/* Logout */}
-            <button
-              onClick={openModal}
-              className="hover:text-red-500 transition cursor-pointer"
-              type="button"
-            >
-              <FiLogOut />
-            </button>
+    {/* Cart Count Badge */}
+    <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs px-1.5 rounded-full">
+      0
+    </span>
+  </Link>
 
-          </div>
+  {/* 👤 Profile */}
+  <Link to="/profile" className="hover:text-red-500 transition">
+    <FaUserCircle />
+  </Link>
 
-        </div>
+  {/* 🚪 Logout */}
+  <button
+    onClick={openModal}
+    className="hover:text-red-500 transition cursor-pointer"
+    type="button"
+  >
+    <FiLogOut />
+      </button>
+      </div>
+       </div>
       </nav>
 
       {/* Logout Confirmation Modal */}
