@@ -43,14 +43,16 @@ function Login() {
 
       localStorage.setItem("userInfo", JSON.stringify(data));
 
-      if (data.role === "admin") {
+      const role = data?.role || data?.user?.role || "user";
+      if (role === "admin") {
         navigate("/admin/dashboard");
       } else {
         navigate("/");
       }
 
     } catch (error) {
-      alert("Invalid Credentials");
+      console.error("Login error:", error);
+      alert("Invalid credentials or server error. Check console.");
     }
   };
 

@@ -1,4 +1,4 @@
-// ProductCard.jsx
+// // ProductCard.jsx
 import { useCart } from '../context/CartContext';
 
  function ProductCard({ product }) {

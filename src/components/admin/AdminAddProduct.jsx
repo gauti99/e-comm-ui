@@ -5,16 +5,19 @@ import axios from "../../config/axiosconfig";
 const AdminAddProduct = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+
   const [formData, setFormData] = useState({
     name: "",
-    brand: "", // New brand field
-    size: "", // New size field
+    brand: "",
+    size: "",
     price: "",
     category: "Electronics",
     countInStock: "",
     description: "",
-    image: "",
+    image: null, // ✅ changed
   });
+
+  const [preview, setPreview] = useState(null); // ✅ new
 
   const categories = [
     "Electronics",
@@ -25,7 +28,6 @@ const AdminAddProduct = () => {
     "Toys",
   ];
 
-  // Size options based on category (you can modify this as needed)
   const sizeOptions = {
     Clothing: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"],
     Shoes: ["6", "7", "8", "9", "10", "11", "12"],
@@ -37,52 +39,79 @@ const AdminAddProduct = () => {
   };
 
   useEffect(() => {
-    // Check if user is authenticated
-    const user = JSON.parse(localStorage.getItem('userInfo'));
+    const user = JSON.parse(localStorage.getItem("userInfo"));
     if (!user || !user.token) {
-      navigate('/login');
+      navigate("/login");
     }
   }, [navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
+  };
+
+  // ✅ Image handler
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+
+    if (file) {
+      setFormData((prev) => ({
+        ...prev,
+        image: file,
+      }));
+
+      setPreview(URL.createObjectURL(file));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    // Validate form data
-    if (!formData.name || !formData.brand || !formData.price || !formData.countInStock || !formData.description) {
+    if (
+      !formData.name ||
+      !formData.brand ||
+      !formData.price ||
+      !formData.countInStock ||
+      !formData.description
+    ) {
       alert("Please fill in all required fields");
       setLoading(false);
       return;
     }
 
-    // Convert price and stock to numbers
-    const productData = {
-      ...formData,
-      price: parseFloat(formData.price),
-      countInStock: parseInt(formData.countInStock)
-    };
-
     try {
-      // Token will be automatically added by interceptor
-      await axios.post("/products", productData);
+      const data = new FormData();
+
+      data.append("name", formData.name);
+      data.append("brand", formData.brand);
+      data.append("size", formData.size);
+      data.append("price", parseFloat(formData.price));
+      data.append("category", formData.category);
+      data.append("countInStock", parseInt(formData.countInStock));
+      data.append("description", formData.description);
+
+      if (formData.image) {
+        data.append("image", formData.image);
+      }
+
+      await axios.post("/products", data, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
       alert("Product added successfully!");
       navigate("/admin/products");
     } catch (error) {
       console.error("Error adding product:", error);
-      if (error.response?.status === 401) {
-        localStorage.removeItem('userInfo');
-        navigate('/login');
-      } else {
-        alert(error.response?.data?.message || "Failed to add product. Please try again.");
-      }
+      alert(
+        error.response?.data?.message ||
+          "Failed to add product. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -91,11 +120,19 @@ const AdminAddProduct = () => {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Add New Product</h1>
-        <p className="text-gray-500">Fill in the details below to add a new product</p>
+        <h1 className="text-2xl font-bold text-gray-900">
+          Add New Product
+        </h1>
+        <p className="text-gray-500">
+          Fill in the details below to add a new product
+        </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow border space-y-4">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-6 rounded-lg shadow border space-y-4"
+      >
+        {/* NAME */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Product Name <span className="text-red-500">*</span>
@@ -106,12 +143,11 @@ const AdminAddProduct = () => {
             value={formData.name}
             onChange={handleChange}
             required
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-            placeholder="Enter product name"
+            className="w-full px-3 py-2 border rounded-lg"
           />
         </div>
 
-        {/* New Brand Field */}
+        {/* BRAND */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Brand <span className="text-red-500">*</span>
@@ -122,11 +158,11 @@ const AdminAddProduct = () => {
             value={formData.brand}
             onChange={handleChange}
             required
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-            placeholder="Enter brand name (e.g., Nike, Apple, Samsung)"
+            className="w-full px-3 py-2 border rounded-lg"
           />
         </div>
 
+        {/* PRICE */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Price ($) <span className="text-red-500">*</span>
@@ -137,159 +173,94 @@ const AdminAddProduct = () => {
             value={formData.price}
             onChange={handleChange}
             required
-            min="0"
-            step="0.01"
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-            placeholder="0.00"
+            className="w-full px-3 py-2 border rounded-lg"
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Category <span className="text-red-500">*</span>
-          </label>
-          <select
-            name="category"
-            value={formData.category}
-            onChange={handleChange}
-            required
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-          >
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* CATEGORY */}
+        <select
+          name="category"
+          value={formData.category}
+          onChange={handleChange}
+          className="w-full px-3 py-2 border rounded-lg"
+        >
+          {categories.map((cat) => (
+            <option key={cat}>{cat}</option>
+          ))}
+        </select>
 
-        {/* New Size Field - Conditional rendering based on category */}
+        {/* SIZE */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Size <span className="text-red-500">*</span>
-          </label>
-          {(formData.category === "Clothing" || formData.category === "Sports") ? (
-            <select
-              name="size"
-              value={formData.size}
-              onChange={handleChange}
-              required
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-            >
-              <option value="">Select size</option>
-              {sizeOptions.Clothing.map((size) => (
-                <option key={size} value={size}>
-                  {size}
-                </option>
-              ))}
-            </select>
-          ) : formData.category === "Shoes" ? (
-            <select
-              name="size"
-              value={formData.size}
-              onChange={handleChange}
-              required
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-            >
-              <option value="">Select size</option>
-              {sizeOptions.Shoes.map((size) => (
-                <option key={size} value={size}>
-                  {size}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <input
-              type="text"
-              name="size"
-              value={formData.size}
-              onChange={handleChange}
-              required
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-              placeholder="Enter size (e.g., Medium, 15-inch, One Size)"
-            />
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Stock Quantity <span className="text-red-500">*</span>
+          <label className="block text-sm font-medium mb-2">
+            Size
           </label>
           <input
-            type="number"
-            name="countInStock"
-            value={formData.countInStock}
+            type="text"
+            name="size"
+            value={formData.size}
             onChange={handleChange}
-            required
-            min="0"
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-            placeholder="0"
+            className="w-full px-3 py-2 border rounded-lg"
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Description <span className="text-red-500">*</span>
-          </label>
-          <textarea
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            required
-            rows="4"
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-            placeholder="Enter product description"
-          />
-        </div>
+        {/* STOCK */}
+        <input
+          type="number"
+          name="countInStock"
+          value={formData.countInStock}
+          onChange={handleChange}
+          placeholder="Stock"
+          className="w-full px-3 py-2 border rounded-lg"
+        />
 
+        {/* DESCRIPTION */}
+        <textarea
+          name="description"
+          value={formData.description}
+          onChange={handleChange}
+          className="w-full px-3 py-2 border rounded-lg"
+        />
+
+        {/* ✅ IMAGE (same UI, just type=file) */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Image URL
+            Image Upload
           </label>
+
           <input
-            type="url"
-            name="image"
-            value={formData.image}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-            placeholder="https://example.com/image.jpg"
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="w-full px-3 py-2 border rounded-lg"
           />
-          {formData.image && (
+
+          {preview && (
             <div className="mt-2">
-              <img 
-                src={formData.image} 
-                alt="Preview" 
+              <img
+                src={preview}
+                alt="Preview"
                 className="w-20 h-20 object-cover rounded border"
-                onError={(e) => {
-                  e.target.src = 'https://via.placeholder.com/80';
-                }}
               />
             </div>
           )}
         </div>
 
+        {/* BUTTONS */}
         <div className="flex gap-4 pt-4">
           <button
             type="button"
             onClick={() => navigate("/admin/products")}
-            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            disabled={loading}
+            className="px-4 py-2 border rounded-lg"
           >
             Cancel
           </button>
+
           <button
             type="submit"
             disabled={loading}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+            className="px-4 py-2 bg-red-600 text-white rounded-lg"
           >
-            {loading ? (
-              <>
-                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
-                Adding...
-              </>
-            ) : (
-              'Add Product'
-            )}
+            {loading ? "Adding..." : "Add Product"}
           </button>
         </div>
       </form>

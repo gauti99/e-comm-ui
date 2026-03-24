@@ -3,6 +3,7 @@ import API from "../services/api";
 import Hero from "../components/Hero";
 import ProductCard from "../components/ProductCard";
 
+
 function Home() {
   const [products, setProducts] = useState([]);
 
@@ -32,6 +33,7 @@ function Home() {
           {products.map((product) => (
             <ProductCard key={product._id} product={product} />
           ))}
+          
         </div>
       </div>
     </>
